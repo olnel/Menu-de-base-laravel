@@ -1,0 +1,1 @@
+import{u as r}from"./responsiveObserve-bzFgw_NB.js";import{W as u,p as t,a7 as a,D as c}from"./app-BGNqkQgH.js";function f(){const s=u({});let e=null;const n=r();return t(()=>{e=n.value.subscribe(o=>{s.value=o})}),a(()=>{n.value.unsubscribe(e)}),s}function p(s){const e=u();return c(()=>{e.value=s()},{flush:"sync"}),e}export{p as e,f as u};

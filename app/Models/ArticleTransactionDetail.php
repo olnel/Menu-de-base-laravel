@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class ArticleTransactionDetail extends Basemodel
+{
+    use HasFactory;
+
+    public function article()
+    {
+        return $this->belongsTo(Article::class);
+    }
+
+
+    public function toArray()
+    {
+        $default = parent::toArray();
+
+        $default['reference'] = $this->article?->reference;
+        $default['designation'] = $this->article?->designation;
+        $default['nom_famille_article'] = $this->article?->famille?->nom_famille_article;
+
+        return $default;
+    }
+}

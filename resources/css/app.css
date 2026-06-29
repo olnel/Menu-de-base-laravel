@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/****************** NPROGRESS ********************/
+
+#nprogress .bar {
+    height: 3px !important;
+}
+*, ::after, ::before {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+/*
+#nprogress .bar::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -10px;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 8px;
+    border-radius: 72% 28% 26% 74% / 51% 49% 51% 49%;
+    filter: brightness(1.5);
+    @apply bg-primary;
+}
+*/
+
+/*********************************************/
+
+
+
+/***************** SCROOLBAR *********************/
+
+/*::-webkit-scrollbar {*/
+/*    @apply p-0 w-1 h-1;*/
+/*}*/
+
+/*::-webkit-scrollbar-thumb {*/
+/*    border-radius: 2px;*/
+/*    @apply bg-text-primary/25;*/
+/*}*/
+
+/*::-webkit-scrollbar-track {*/
+/*    @apply bg-transparent px-2;*/
+/*}*/
+
+/*::-webkit-scrollbar-button {*/
+/*    display: none;*/
+/*}*/
+
+.ps .ps__rail-y:hover,
+.ps .ps__rail-x:hover,
+.ps .ps--clicking{
+    @apply !bg-white !bg-opacity-20;
+}
+
+/************************ MODAL ***************************/
+
+.ant-modal-title {
+    @apply !font-medium mb-5;
+}
+
+.ant-modal-footer .ant-btn{
+    @apply !uppercase;
+}
+
+/**********************************************************/
+
+.main-shadow {
+    @apply shadow-sm shadow-gray-200;
+}
+
+.main-rounded {
+    @apply rounded-b-md overflow-hidden;
+}
+
+.main-border {
+    @apply border-gray-200 hover:border-gray-200;
+}
+
+.main-hover {
+    @apply hover:bg-gray-100;
+}
+
+.main-card{
+    @apply bg-white shadow-lg shadow-gray-200 rounded-lg overflow-hidden;
+}
+
+.main-card .ant-card-head{
+    @apply  border-0 min-h-fit pt-4;
+}
+
+/*.main-card .ant-card-head-title{*/
+/*    @apply mt-5;*/
+/*}*/
+
+/*.main-card .ant-card-meta-description{*/
+/*    @apply !text-gray-600;*/
+/*}*/
+
+.main-card .ant-card-body,
+.main-card .ant-card-head{
+    @apply px-2 sm:px-6;
+}
+
+.main-card .card-description{
+    @apply text-sm text-gray-600;
+}
+
+
+/* ant-carousel*/
+
+.hero-carousel.ant-carousel .slick-dots-bottom {
+    @apply bottom-9
+}
+
+.hero-carousel .slick-dots li button {
+    @apply w-2.5 h-2.5 rounded-full;
+    position: relative;
+    display: block;
+    padding: 0;
+    color: transparent;
+    font-size: 0;
+    background: #ffffff;
+    border: 0;
+    border-radius: 100%;
+    outline: none;
+    cursor: pointer;
+    opacity: 0.3;
+    transition: all 0.3s;
+}
+
+.hero-carousel .slick-dots li.slick-active button {
+    @apply w-6 bg-green-400 rounded-full
+}
+
+.vc-color-wrap{
+    height: 40px !important;
+}
+
+.ant-table-wrapper .ant-table-thead >tr>th {
+    @apply !bg-[#F1F1EE] text-black !rounded-none !text-nowrap border border-gray-200;
+}
+
+.ant-table-pagination {
+    @apply !flex !justify-center !py-2;
+}
+.ant-table-wrapper .ant-table-tbody > tr:hover > td {
+    @apply !bg-secondary/10;
+}
+/* End ant-carousel*/
+
+.ant-table-header {
+    border-radius: 0 !important;
+}
+.custom_autocomplete .ant-select-selector {
+    @apply !border-0 !rounded-none
+}
+
+:deep(.ant-table-row-selected td) {
+    background: inherit !important;
+}
+
+.select-autocomplete .ant-select-selector {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+.select-autocomplete.ant-select-focused .ant-select-selector {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}

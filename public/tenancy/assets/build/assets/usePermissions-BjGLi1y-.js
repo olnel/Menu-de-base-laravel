@@ -1,0 +1,1 @@
+import{c as i,Q as o}from"./app-BGNqkQgH.js";function l(){const r=i(()=>o().props.auth.user),n=e=>e?Array.isArray(e)?e:typeof e=="object"?Object.values(e):[]:[];return{can:e=>{var s,t,u;if((s=r.value)!=null&&s.is_dna)return!0;const c=n((t=r.value)==null?void 0:t.accepted_routes),a=n((u=r.value)==null?void 0:u.permissions);return c.includes(e)||a.includes(e)}}}export{l as u};

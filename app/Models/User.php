@@ -1,0 +1,181 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\TypeUser;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Http\Request;
+
+
+class User extends Authenticatable implements MustVerifyEmail
+{
+    use HasFactory, Notifiable, HasRoles, SoftDeletes;
+
+    protected $guarded = ['created_at', 'deleted_at',];
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+    protected $casts = [
+        'privileges' => 'array',
+        'email_verified_at' => 'datetime',
+        'is_dna' => 'boolean'
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'is_dna' => 'boolean'
+        ];
+    }
+
+    protected $appends = [
+        "is_you",
+        'privileges_name'
+    ];
+
+    public function scopeFilter($query, $search = null)
+    {
+        if (!is_null($search)){
+            $query->where(function ($q) use ($search) {
+                $q->where('users.name', 'LIKE', "%{$search}%")
+                    ->orWhere('users.email', 'LIKE', "%{$search}%");
+            })
+                ->leftJoin('user_groups', 'users.user_group_id', '=', 'user_groups.id')
+                ->orWhere('user_groups.name', 'LIKE', "%{$search}%")
+                ->select('users.*');
+        }
+        return $query;
+    }
+
+    public function scopeIsdna($query)
+    {
+        return $query->where('is_dna', false);
+
+    }
+
+    public function getIsYouAttribute()
+    {
+        return auth()->check() && $this->id == auth()->user()->id;
+    }
+
+
+    public function group()
+    {
+        return $this->belongsTo(UserGroup::class, 'user_group_id');
+    }
+
+    public function getPrivilegesNameAttribute()
+    {
+        if ($this->is_dna) {
+            return "DNA";
+        }
+        return $this->group?->name ?? "";
+    }
+
+    public function getPermissionsAttribute()
+    {
+        return $this->getAllPermissions()->pluck('name')->toArray();
+    }
+
+    public function getPrivilegesAttribute()
+    {
+        // Si c'est DNA, retourner tous les privilèges
+        if ($this->is_dna) {
+            return $this->getAllPrivilegeKeys();
+        }
+
+        return $this->group?->privileges ?? [];
+    }
+
+    /**
+     * Récupérer toutes les clés de privilèges disponibles
+     */
+    private function getAllPrivilegeKeys(): array
+    {
+        $keys = [];
+        $this->extractAllKeys(UserGroup::$privileges, $keys);
+        return array_unique($keys);
+    }
+
+    /**
+     * Extraire récursivement toutes les clés de privilèges
+     */
+    private function extractAllKeys($privileges, &$keys)
+    {
+        foreach ($privileges as $privilege) {
+            $keys[] = $privilege['key'];
+
+            if (isset($privilege['children'])) {
+                $this->extractAllKeys($privilege['children'], $keys);
+            }
+        }
+    }
+
+    /**
+     * Récupérer toutes les routes disponibles
+     */
+    private function getAllRoutes(): array
+    {
+        $routes = [];
+        $this->extractAllRoutes(UserGroup::$privileges, $routes);
+        return array_unique($routes);
+    }
+
+    /**
+     * Extraire récursivement toutes les routes
+     */
+    private function extractAllRoutes($privileges, &$routes)
+    {
+        foreach ($privileges as $privilege) {
+            if (isset($privilege['routes']) && $privilege['routes']) {
+                array_push($routes, ...$privilege['routes']);
+            }
+
+            if (isset($privilege['children'])) {
+                $this->extractAllRoutes($privilege['children'], $routes);
+            }
+        }
+    }
+
+    public function getAcceptedRoutesAttribute()
+    {
+        // Si c'est DNA, retourner toutes les routes
+        if ($this->is_dna) {
+            return $this->getAllRoutes();
+        }
+
+        return $this->extractAcceptedRoutes(UserGroup::$privileges, $this->privileges);
+    }
+
+    /**
+     * Vérifier si l'utilisateur est DNA
+     */
+    public function isDNA(): bool
+    {
+        return $this->is_dna === true;
+    }
+
+    private function extractAcceptedRoutes($sources, $privileges)
+    {
+        $routes = [];
+        foreach ($sources as $privilege) {
+            if (in_array($privilege['key'], $privileges))
+                if (isset($privilege['routes']) && $privilege['routes'])
+                    array_push($routes, ...$privilege['routes']);
+
+            if (isset($privilege['children']))
+                array_push($routes, ...$this->extractAcceptedRoutes($privilege['children'], $privileges));
+        }
+
+        return array_unique($routes);
+    }
+
+}

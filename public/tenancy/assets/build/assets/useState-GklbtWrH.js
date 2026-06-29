@@ -1,0 +1,1 @@
+import{r as c}from"./app-BGNqkQgH.js";let e={};function s(n,i){}function u(n,i){}function o(n,i,t){!i&&!e[t]&&(n(!1,t),e[t]=!0)}function f(n,i){o(s,n,i)}function l(n,i){o(u,n,i)}const v=(n,i,t)=>{f(n,`[ant-design-vue: ${i}] ${t}`)};function d(n){const i=typeof n=="function"?n():n,t=c(i);function a(r){t.value=r}return[t,a]}export{f as a,v as d,l as n,d as u,s as w};

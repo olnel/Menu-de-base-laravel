@@ -1,0 +1,1 @@
+import{_ as s,g as t,o,d as r}from"./app-BGNqkQgH.js";const a={},c={class:"mt-3 ms-2 text-gray-600"};function n(m,e){return o(),t("ul",c,e[0]||(e[0]=[r("li",null,"- Le mot de passe doit comporter au moins 8 caractères.",-1)]))}const d=s(a,[["render",n]]);export{d as P};
