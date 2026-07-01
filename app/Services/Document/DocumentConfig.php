@@ -2,7 +2,6 @@
 
 namespace App\Services\Document;
 
-use App\Mail\BonCommandeFournisseurMail;
 use App\Mail\DevisMail;
 use App\Mail\FactureclientMail;
 use App\Mail\InvoiceReminderMail;
@@ -79,7 +78,7 @@ class DocumentConfig
                 'force_regenerate' => false
             ],
             'email' => [
-                'mail_class' => BonCommandeFournisseurMail::class,
+                'mail_class' => null,
                 'recipients' => $bonCommande->fournisseur->mail_fournisseur,
                 'additional_data' => $bonCommande
             ]

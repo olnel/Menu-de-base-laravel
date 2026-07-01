@@ -2,17 +2,14 @@
 
 namespace App\Services\Base;
 
-use App\Services\ImageService;
-use Dotenv\Util\Str;
 use Exception;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 abstract class BaseImageService extends BaseService
 {
-    protected ImageService $imageService;
-
     protected array $imageFields = [
         'main' => [
             'field' => 'image',
@@ -29,10 +26,9 @@ abstract class BaseImageService extends BaseService
     ];
     protected array $scope= ['filter' => 'search'];
 
-    public function __construct($repository, ImageService $imageService)
+    public function __construct($repository)
     {
         parent::__construct($repository);
-        $this->imageService = $imageService;
     }
 
     /**
@@ -270,16 +266,12 @@ abstract class BaseImageService extends BaseService
         array $config,
         int|string $modelId
     ): array {
-        return $this->imageService->processWithMemorySafety(
-            $file,
-            "{$config['path_prefix']}/{$config['name_prefix']}_{$modelId}",
-            [
-                'max_dimension' => $config['max_dimension'],
-                'quality' => $config['quality'],
-                'create_thumb' => $config['create_thumb'],
-                'format' => $config['format']
-            ]
-        );
+        $filename = "{$config['name_prefix']}_{$modelId}." . $file->getClientOriginalExtension();
+        $path = $file->storeAs($config['path_prefix'], $filename, 'public');
+        return [
+            'main' => ['path' => $path],
+            'thumb' => ['path' => null]
+        ];
     }
 
     protected function deleteAllImages($model): void
@@ -297,11 +289,11 @@ abstract class BaseImageService extends BaseService
     {
         try {
             if (!empty($model->{$config['path_field']})) {
-                $this->imageService->delete($model->{$config['path_field']});
+                Storage::disk('public')->delete($model->{$config['path_field']});
             }
 
             if ($config['create_thumb'] && $config['thumb_field'] && !empty($model->{$config['thumb_field']})) {
-                $this->imageService->delete($model->{$config['thumb_field']});
+                Storage::disk('public')->delete($model->{$config['thumb_field']});
             }
         } catch (Exception $e) {
             Log::error("Erreur suppression fichiers : " . $e->getMessage());
@@ -315,10 +307,10 @@ abstract class BaseImageService extends BaseService
 
             foreach ($images as $image) {
                 if (!empty($image['main'])) {
-                    $this->imageService->delete($image['main']);
+                    Storage::disk('public')->delete($image['main']);
                 }
                 if (!empty($image['thumb'])) {
-                    $this->imageService->delete($image['thumb']);
+                    Storage::disk('public')->delete($image['thumb']);
                 }
             }
         } catch (Exception $e) {

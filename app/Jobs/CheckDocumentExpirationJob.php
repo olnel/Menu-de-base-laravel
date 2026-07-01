@@ -4,7 +4,6 @@ namespace App\Jobs;
 
 use App\Models\Notification;
 use App\Models\Document;
-use App\Services\DocumentDynamicService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -14,11 +13,15 @@ class CheckDocumentExpirationJob implements ShouldQueue
 {
     use Queueable;
 
-    public function handle(DocumentDynamicService $service): void
+    public function handle(): void
     {
         try {
-            $expiringDocs = $service->getExpiringDocuments();
-            
+            $expiringDocs = Document::with(['documentable'])
+                ->whereNotNull('date_expiration')
+                ->whereDate('date_expiration', '>=', Carbon::today())
+                ->whereDate('date_expiration', '<=', Carbon::today()->addDays(30))
+                ->get();
+
             foreach ($expiringDocs as $doc) {
                 $this->processNotification($doc);
             }

@@ -11,7 +11,6 @@ use App\Models\InfoSociete;
 use App\Repositories\PaieRepository;
 use App\Utils\NumberToWordsHelper;
 use App\Services\Base\BaseService;
-use App\Services\TresorerieMouvementService;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -22,7 +21,6 @@ use App\Services\Document\DocumentService;
 class PaieService extends BaseService
 {
     protected $repository;
-    protected TresorerieMouvementService $mouvementService;
     protected DocumentService $documentService;
     protected array $relation = ['salarie', 'elements', 'salarie.typeSalarie'];
     protected array $scope = [
@@ -34,11 +32,9 @@ class PaieService extends BaseService
 
     public function __construct(
         PaieRepository $paieRepository,
-        TresorerieMouvementService $mouvementService,
         DocumentService $documentService
     ) {
         $this->repository = $paieRepository;
-        $this->mouvementService = $mouvementService;
         $this->documentService = $documentService;
         parent::__construct($paieRepository);
     }

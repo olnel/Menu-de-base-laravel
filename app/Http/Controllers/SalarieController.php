@@ -7,7 +7,6 @@ use App\Models\Vehicule;
 use App\Models\Chauffeur;
 use App\Services\SalarieService;
 use App\Services\TypeSalarieService;
-use App\Services\DocumentDynamicService;
 use App\Utils\ExtractFiltre;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -18,16 +17,13 @@ class SalarieController extends Controller
 {
     private $service;
     private $typeSalarieService;
-    private $documentService;
 
     public function __construct(
         SalarieService $salarieService, 
-        TypeSalarieService $typeSalarieService,
-        DocumentDynamicService $documentService
+        TypeSalarieService $typeSalarieService
     ) {
         $this->service = $salarieService;
         $this->typeSalarieService = $typeSalarieService;
-        $this->documentService = $documentService;
     }
 
     /**
@@ -43,14 +39,13 @@ class SalarieController extends Controller
 
         $output = $this->service->getAll($filtre);
         $types = $this->typeSalarieService->getAll([]);
-        $requiredDocs = $this->documentService->getRequiredDocumentModels(Salarie::class);
         $vehicules = Vehicule::all(['id', 'immatriculation', 'marque', 'modele']);
         $chauffeurs = Chauffeur::where('is_aide_chauffeur', false)->get(['id', 'nom', 'prenom', 'matricule']);
 
         return Inertia::render("Salarie/Index", [
             "data" => $output,
             "types_salarie" => $types,
-            "required_documents" => $requiredDocs,
+            "required_documents" => collect(),
             "vehicules" => $vehicules,
             "chauffeurs_list" => $chauffeurs,
             "filters" => [

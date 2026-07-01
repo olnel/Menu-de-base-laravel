@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\ReparationVehicule;
 use App\Models\Ticket;
-use App\Services\TicketService;
 use Illuminate\Console\Command;
 
 class BackfillReparationTickets extends Command
@@ -16,7 +15,7 @@ class BackfillReparationTickets extends Command
 
     protected $description = 'Generate missing tickets for existing reparation vehicules that have technician labor data';
 
-    public function handle(TicketService $ticketService): int
+    public function handle(): int
     {
         $query = ReparationVehicule::query()->with(['articles.details']);
 
@@ -25,7 +24,6 @@ class BackfillReparationTickets extends Command
         }
 
         if (!$this->option('force')) {
-            // Only reparations WITHOUT any tickets
             $reparationIdsWithTickets = Ticket::whereNotNull('reparation_vehicule_id')
                 ->distinct()
                 ->pluck('reparation_vehicule_id')
@@ -74,7 +72,11 @@ class BackfillReparationTickets extends Command
                 continue;
             }
 
-            $ticketService->generateForReparation($reparation);
+            Ticket::create([
+                'reparation_vehicule_id' => $reparation->id,
+                'immatriculation' => $reparation->immatriculation,
+                'statut' => 'ouvert',
+            ]);
             $generated++;
             $bar->advance();
         }

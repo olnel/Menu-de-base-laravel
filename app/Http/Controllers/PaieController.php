@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Paie;
 use App\Models\PaieElement;
 use App\Services\PaieService;
-use App\Services\TresorerieService;
 use App\Utils\ExtractFiltre;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,12 +12,10 @@ use Inertia\Inertia;
 class PaieController extends Controller
 {
     private $service;
-    private $tresorerieService;
 
-    public function __construct(PaieService $paieService, TresorerieService $tresorerieService)
+    public function __construct(PaieService $paieService)
     {
         $this->service = $paieService;
-        $this->tresorerieService = $tresorerieService;
     }
 
     public function index(Request $request)

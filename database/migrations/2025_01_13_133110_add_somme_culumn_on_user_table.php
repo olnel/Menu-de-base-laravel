@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string("avatar")->nullable();
             $table->string("tel")->nullable();
+            $table->boolean("is_dna")->default(false);
             $table->softDeletes();
         });
     }

@@ -6,62 +6,7 @@ export function getMenuData() {
             "fa-chart-bar",
             null,
             null,
-            [
-                getItem(
-                    "Vehicule",
-                    "dashboard_vehicule",
-                    "fa-solid fa-car",
-                    "dashboard.vehicule",
-                    "flotte"
-                ),
-                getItem(
-                    "Calendriers",
-                    "calendrier",
-                    "fa-solid fa-calendar-days",
-                    "calendrier.index"
-                ),
-                getItem(
-                    "Voyage",
-                    "dashboard_voyage",
-                    "fa-solid fa-car",
-                    "dashboard.voyage",
-                    "voyage"
-                ),
-                getItem(
-                    "Facturation & Comptablité",
-                    "dashboard_facturation",
-                    "fa-solid fa-car",
-                    "dashboard.comptablite",
-                    "client"
-                ),
-                getItem(
-                    "Carburant",
-                    "dashboard_carburant",
-                    "fa-solid fa-gas",
-                    "dashboard.carburant",
-                    "carburant"
-                ),
-                getItem(
-                    "Pneu",
-                    "dashboard_pneu",
-                    "fa-solid fa-circle-dot",
-                    "dashboard.pneu",
-                    "maintenance"
-                ),
-                getItem(
-                    "Chauffeur",
-                    "dashboard_chauffeur",
-                    "fa-solid fa-steering-wheel",
-                    "dashboard.chauffeur",
-                    "chauffeur"
-                ),
-                getItem(
-                    "Rentabilité",
-                    "dashboard_rentabilite",
-                    "fa-solid fa-money-bill-trend-up",
-                    "dashboard.rentabilite"
-                ),
-            ],
+            [],
             ["#eab308", "#ca8a04"]
         ),
 

@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use App\Models\InfoSociete;
-use App\Services\PlanningCalendarService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Inertia\Middleware;
@@ -44,12 +43,6 @@ class HandleInertiaRequests extends Middleware
         // Vérifier si l'utilisateur a accès à la route actuelle
         $hasCurrentRouteAccess = in_array($currentRoute, $acceptedRoutes);
 
-        $maintenanceNotifications = [];
-        if (app()->bound(PlanningCalendarService::class)) {
-            $maintenanceNotifications = app(PlanningCalendarService::class)->getFormattedNotifications();
-        }
-
-
         return [
             ...parent::share($request),
             'auth' => [
@@ -81,7 +74,7 @@ class HandleInertiaRequests extends Middleware
                 'hasCurrentAccess' => $hasCurrentRouteAccess,
                 'currentRoute' => $currentRoute,
             ],
-            "maintenanceNotifications" => $maintenanceNotifications,
+            "maintenanceNotifications" => [],
             'devise' => function () {
                 try {
                     return InfoSociete::findOrFail(1)->devise ?? 'MGA';

@@ -5,11 +5,8 @@ namespace App\Providers;
 use App\Interfaces\ActivityLoggerInterface;
 use App\Listeners\LogAuthenticationActivity;
 use App\Models\Remorque;
-use App\Repositories\PlanningCalendarRepository;
 use App\Services\ActivityLogService;
-use App\Services\LibelleMaintenanceService;
 use App\Services\PDFService\PDFService;
-use App\Services\PlanningCalendarService;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Vite;
@@ -26,16 +23,6 @@ class AppServiceProvider extends ServiceProvider
             return new PDFService();
         });
 
-
-        $this->app->singleton(PlanningCalendarService::class, function ($app) {
-            return new PlanningCalendarService(
-                $app->make(PlanningCalendarRepository::class),
-                $app->make(LibelleMaintenanceService::class)
-            );
-        });
-
-        // Liaison de l'interface vers l'implémentation (DIP).
-        // Tout consommateur typant ActivityLoggerInterface recevra ActivityLogService.
         $this->app->bind(ActivityLoggerInterface::class, ActivityLogService::class);
     }
 

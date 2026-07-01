@@ -2,38 +2,29 @@
 
 namespace App\Services;
 
-use App\Repositories\SalarieRepository;
-use App\Repositories\ChauffeurRepository;
+use App\Models\Chauffeur;
 use App\Models\TypeSalarie;
+use App\Repositories\SalarieRepository;
 use App\Services\Base\BaseService;
-use App\Services\DocumentDynamicService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Exception;
 
 class SalarieService extends BaseService
 {
     protected $repository;
-    protected $chauffeurRepository;
     protected array $relation = ['typeSalarie', 'documents', 'documents.documentType', 'chauffeur'];
     protected array $scope = [
         'filter' => 'search',
         'onlyTrashed' => 'only_trashed'
     ];
-    protected ImageService $imageService;
-    protected DocumentDynamicService $documentService;
 
     public function __construct(
-        SalarieRepository $salarieRepository, 
-        ChauffeurRepository $chauffeurRepository,
-        ImageService $imageService,
-        DocumentDynamicService $documentService
+        SalarieRepository $salarieRepository
     ) {
         $this->repository = $salarieRepository;
-        $this->chauffeurRepository = $chauffeurRepository;
-        $this->imageService = $imageService;
-        $this->documentService = $documentService;
         parent::__construct($salarieRepository);
     }
 
@@ -62,47 +53,25 @@ class SalarieService extends BaseService
     {
         DB::beginTransaction();
         try {
-            // Extraction des documents et infos chauffeur si présents
-            $documents = $validated['documents'] ?? [];
-            unset($validated['documents']);
-
             $vehicule_id = $validated['vehicule_id'] ?? null;
             $parent_chauffeur_id = $validated['parent_chauffeur_id'] ?? null;
-            unset($validated['vehicule_id'], $validated['parent_chauffeur_id']);
+            unset($validated['vehicule_id'], $validated['parent_chauffeur_id'], $validated['documents']);
 
-            // Génération automatique du matricule
             $numData = $this->generateMatricule();
             $validated['matricule'] = $numData['matricule'];
             $validated['count_matricule'] = $numData['count_matricule'];
 
-            // Gestion de la photo
             if (isset($validated['photo']) && $validated['photo'] instanceof \Illuminate\Http\UploadedFile) {
-                $photo = $validated['photo'];
-                $path = 'salaries/photos/' . time();
-                $processed = $this->imageService->processWithMemorySafety($photo, $path, ['create_thumb' => true]);
-                $validated['photo'] = $processed['main']['path'];
+                $filename = 'salarie_' . time() . '.' . $validated['photo']->getClientOriginalExtension();
+                $validated['photo'] = $validated['photo']->storeAs('salaries/photos', $filename, 'public');
             }
 
             $element = $this->repository->create($validated);
 
-            // Synchronisation avec la table chauffeurs
             $this->syncChauffeur($element, [
                 'vehicule_id' => $vehicule_id,
                 'parent_chauffeur_id' => $parent_chauffeur_id
             ]);
-
-            // Traitement des documents
-            foreach ($documents as $doc) {
-                if (isset($doc['fichier']) && $doc['fichier'] instanceof \Illuminate\Http\UploadedFile) {
-                    $this->documentService->saveDocument(
-                        $element,
-                        $doc['document_type_id'],
-                        $doc['fichier'],
-                        $doc['date_expiration'] ?? null,
-                        $doc['observation'] ?? null
-                    );
-                }
-            }
 
             DB::commit();
             return $this->successResponse('Salarié enregistré avec succès', $element);
@@ -117,56 +86,29 @@ class SalarieService extends BaseService
     {
         DB::beginTransaction();
         try {
-            // Extraction des documents et infos chauffeur si présents
-            $documents = $validated['documents'] ?? [];
-            unset($validated['documents']);
-
             $vehicule_id = $validated['vehicule_id'] ?? null;
             $parent_chauffeur_id = $validated['parent_chauffeur_id'] ?? null;
-            unset($validated['vehicule_id'], $validated['parent_chauffeur_id']);
-
-            // Empêcher la modification du matricule via l'update si passé par erreur
-            unset($validated['matricule']);
-            unset($validated['count_matricule']);
+            unset($validated['vehicule_id'], $validated['parent_chauffeur_id'], $validated['documents']);
+            unset($validated['matricule'], $validated['count_matricule']);
 
             if (isset($validated['photo']) && $validated['photo'] instanceof \Illuminate\Http\UploadedFile) {
-                // Supprimer l'ancienne photo si elle existe
                 if ($model->photo) {
-                    $this->imageService->delete($model->photo);
-                    // Supprimer aussi la miniature si elle existe (convention _thumb.webp)
-                    $thumbPath = str_replace('.webp', '_thumb.webp', $model->photo);
-                    $this->imageService->delete($thumbPath);
+                    Storage::disk('public')->delete($model->photo);
+                    Storage::disk('public')->delete(str_replace('.webp', '_thumb.webp', $model->photo));
                 }
 
-                $photo = $validated['photo'];
-                $path = 'salaries/photos/' . time();
-                $processed = $this->imageService->processWithMemorySafety($photo, $path, ['create_thumb' => true]);
-                $validated['photo'] = $processed['main']['path'];
+                $filename = 'salarie_' . time() . '.' . $validated['photo']->getClientOriginalExtension();
+                $validated['photo'] = $validated['photo']->storeAs('salaries/photos', $filename, 'public');
             } else {
-                // Si pas de nouvelle photo, on garde l'ancienne
                 unset($validated['photo']);
             }
 
             $this->repository->update($model, $validated);
 
-            // Synchronisation avec la table chauffeurs
             $this->syncChauffeur($model, [
                 'vehicule_id' => $vehicule_id,
                 'parent_chauffeur_id' => $parent_chauffeur_id
             ]);
-
-            // Traitement des documents (uniquement les nouveaux uploads)
-            foreach ($documents as $doc) {
-                if (isset($doc['fichier']) && $doc['fichier'] instanceof \Illuminate\Http\UploadedFile) {
-                    $this->documentService->saveDocument(
-                        $model,
-                        $doc['document_type_id'],
-                        $doc['fichier'],
-                        $doc['date_expiration'] ?? null,
-                        $doc['observation'] ?? null
-                    );
-                }
-            }
 
             DB::commit();
             return $this->successResponse('Salarié mis à jour avec succès', $model);
@@ -182,9 +124,8 @@ class SalarieService extends BaseService
         DB::beginTransaction();
         try {
             if ($model->photo) {
-                $this->imageService->delete($model->photo);
-                $thumbPath = str_replace('.webp', '_thumb.webp', $model->photo);
-                $this->imageService->delete($thumbPath);
+                Storage::disk('public')->delete($model->photo);
+                Storage::disk('public')->delete(str_replace('.webp', '_thumb.webp', $model->photo));
             }
             $this->repository->delete($model);
             DB::commit();
@@ -229,14 +170,13 @@ class SalarieService extends BaseService
 
             $chauffeur = $salarie->chauffeur;
             if ($chauffeur) {
-                $this->chauffeurRepository->update($chauffeur, $data);
+                $chauffeur->update($data);
             } else {
-                $this->chauffeurRepository->create($data);
+                Chauffeur::create($data);
             }
         } else {
-            // Si le salarié n'est plus un chauffeur, on supprime l'entrée correspondante
             if ($salarie->chauffeur) {
-                $this->chauffeurRepository->delete($salarie->chauffeur);
+                $salarie->chauffeur->delete();
             }
         }
     }

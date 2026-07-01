@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Repositories\InfosocieteRepository;
 use App\Services\Base\BaseImageService;
-use App\Services\Base\BaseService;
 
 class InfosocieteService extends BaseImageService
 {
@@ -23,10 +22,10 @@ class InfosocieteService extends BaseImageService
     ];
 
     protected $repository;
-    public function __construct(InfosocieteRepository $repository, ImageService $imageService)
+    public function __construct(InfosocieteRepository $repository)
     {
         $this->repository = $repository;
-        parent::__construct($repository, $imageService);
+        parent::__construct($repository);
     }
 
     public function findElement()

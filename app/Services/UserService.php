@@ -2,13 +2,11 @@
 
 namespace App\Services;
 
-use App\Repositories\ChauffeurRepository;
 use App\Repositories\UserRepository;
 use App\Services\Base\BaseImageService;
 
 class UserService extends BaseImageService
 {
-    protected $service;
     protected $repository;
     protected array $relation = ['group'];
     protected array $scope = ['filter' => 'search', 'isdna' => 'isdna'];
@@ -26,11 +24,10 @@ class UserService extends BaseImageService
         ],
     ];
 
-    public function __construct(UserRepository $userRepository, ImageService $imageService)
+    public function __construct(UserRepository $userRepository)
     {
-        $this->service = $imageService;
         $this->repository = $userRepository;
-        parent::__construct($userRepository, $this->service);
+        parent::__construct($userRepository);
     }
     protected function initializeFilters(): void
     {
